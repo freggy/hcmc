@@ -28,6 +28,6 @@ class HcmcPlugin : JavaPlugin() {
 
     override fun onDisable() {
         this.serverEvents.close()
-        this.hcloud.client.close()
+        //this.hcloud.client.close()
     }
 }

@@ -2,24 +2,20 @@ package dev.freggy.hcmc.hcloud
 
 import dev.freggy.hcmc.hcloud.model.Server
 import dev.freggy.hcmc.hcloud.model.ServerPage
-import io.ktor.client.HttpClient
-import io.ktor.client.request.*
+import java.net.URI
 
-class ServerClient(private val client: HttpClient) {
+class ServerClient(private val hcloud: HetznerCloud) {
 
-    suspend fun getServers(): Array<Server> {
-        return this.client.get<ServerPage> {
-            url {
-                path("servers")
-            }
-        }.servers
+    fun getAllServers(): Array<Server> {
+        // TODO: get all servers
+        val req = hcloud.baseRequest.GET().uri(URI.create("${hcloud.basePath}/servers")).build()
+        val resp = hcloud.queue.submit(req)
+        return hcloud.gson.fromJson(resp.body(), ServerPage::class.java).servers
     }
 
-    suspend fun getServer(id: Int): Server {
-        return this.client.get {
-            url {
-                path("server", "$id")
-            }
-        }
+    fun getServer(id: Int): Server {
+        val req = hcloud.baseRequest.GET().uri(URI.create("${hcloud.basePath}/servers/$id")).build()
+        val resp = hcloud.queue.submit(req)
+        return hcloud.gson.fromJson(resp.body(), Server::class.java)
     }
 }
