@@ -18,7 +18,11 @@ class RequestQueue(private val client: HttpClient) {
         GlobalScope.launch {
             while (true) {
                 delay(1000)
-                resps.send(client.send(reqs.receive(), HttpResponse.BodyHandlers.ofString()))
+                try {
+                    resps.send(client.send(reqs.receive(), HttpResponse.BodyHandlers.ofString()))
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
             }
         }
     }

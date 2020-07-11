@@ -7,5 +7,7 @@ import dev.freggy.hcmc.hcloud.HetznerCloud
 fun main(args: Array<String>) {
 
     val h = HetznerCloud("")
+    val f = h.servers().getAllServers()
 
+    println(f)
 }
