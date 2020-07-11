@@ -14,9 +14,10 @@ class HetznerCloud(token: String) {
     val queue = RequestQueue(client)
     val baseRequest = HttpRequest.newBuilder().header("Authorization", "bearer $token")
 
+    val actions = ActionClient(this)
+    val servers = ServerClient(this)
+
     init {
         queue.start()
     }
-
-    fun servers(): ServerClient = ServerClient(this)
 }
