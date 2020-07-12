@@ -8,7 +8,7 @@ import org.joda.time.DateTime
 
 class ActionFetcher(private val hcloud: HetznerCloud, private val monitor: ActionMonitor) {
 
-    fun start() {
+    fun startFetching() {
         GlobalScope.launch {
             var lastCheck = System.currentTimeMillis()
             while (true) {

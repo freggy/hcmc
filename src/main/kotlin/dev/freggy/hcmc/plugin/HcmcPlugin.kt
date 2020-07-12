@@ -3,16 +3,13 @@ package dev.freggy.hcmc.plugin
 import dev.freggy.hcmc.hcloud.HetznerCloud
 import dev.freggy.hcmc.hcloud.model.Action
 import dev.freggy.hcmc.hcloud.model.ActionCommand
-import dev.freggy.hcmc.hcloud.model.ActionStatus
 import dev.freggy.hcmc.hcloud.model.Server
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.plugin.java.JavaPlugin
-import org.joda.time.DateTime
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -24,6 +21,8 @@ class HcmcPlugin : JavaPlugin() {
     val serverPresenceEvents = Channel<Action>()
 
     private lateinit var hcloud: HetznerCloud
+    private val monitor = ActionMonitor(hcloud)
+    private val fetcher = ActionFetcher(hcloud, monitor)
 
     override fun onEnable() {
         hcloud = HetznerCloud("") // TODO: read token from command
@@ -33,30 +32,21 @@ class HcmcPlugin : JavaPlugin() {
             }
         }
 
+        monitor.startMonitoring()
+        fetcher.startFetching()
+
         GlobalScope.launch {
-            var lastCheck = System.currentTimeMillis()
             while (true) {
-                // 2 second delay here so we can have 1 different api request per second
-                delay(500)
-                val page = hcloud.actions.getActions(listOf(Pair("sort", "finished:desc")))
-                page.actions
-                    .filter { DateTime(it.finished).isAfter(lastCheck) }
-                    .filter { it.status == ActionStatus.SUCCESS }
-                    .forEach {
-                        Bukkit.broadcastMessage(it.toString())
-                        Bukkit.broadcastMessage("---")
-                        if (it.command.isServerPresence) {
-                            serverPresenceEvents.send(it)
-                            return@forEach
-                        }
-                        if (it.command.isServerStatus) {
-                            serverStatusEvents.send(it)
-                            return@forEach
-                        }
-                    }
-                lastCheck = System.currentTimeMillis()
+                val action = monitor.updateChannel.receive()
+                if (action.command.isServerPresence) {
+                    serverPresenceEvents.send(action)
+                }
+                if (action.command.isServerStatus) {
+                    serverStatusEvents.send(action)
+                }
             }
         }
+
 
         GlobalScope.launch(PluginContext(this)) {
             while (true) {

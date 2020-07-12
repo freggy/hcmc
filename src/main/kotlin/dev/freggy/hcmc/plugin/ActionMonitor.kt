@@ -15,7 +15,7 @@ class ActionMonitor(private val hcloud: HetznerCloud) {
     private val monitored = ConcurrentHashMap<Int, Action>()
     val updateChannel = Channel<Action>()
 
-    fun start() {
+    fun startMonitoring() {
         GlobalScope.launch {
             while (true) {
                 monitored.forEach {
