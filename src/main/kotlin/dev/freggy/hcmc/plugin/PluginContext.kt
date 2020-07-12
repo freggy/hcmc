@@ -1,4 +1,4 @@
-package dev.freggy.hcmc
+package dev.freggy.hcmc.plugin
 
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext

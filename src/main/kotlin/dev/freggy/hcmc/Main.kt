@@ -1,6 +1,8 @@
 package dev.freggy.hcmc
 
 import dev.freggy.hcmc.hcloud.HetznerCloud
+import dev.freggy.hcmc.plugin.ActionFetcher
+import dev.freggy.hcmc.plugin.ActionMonitor
 import kotlinx.coroutines.runBlocking
 
 // for testing purposes only

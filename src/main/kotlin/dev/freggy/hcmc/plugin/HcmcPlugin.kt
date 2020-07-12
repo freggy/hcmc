@@ -1,4 +1,4 @@
-package dev.freggy.hcmc
+package dev.freggy.hcmc.plugin
 
 import dev.freggy.hcmc.hcloud.HetznerCloud
 import dev.freggy.hcmc.hcloud.model.Action
