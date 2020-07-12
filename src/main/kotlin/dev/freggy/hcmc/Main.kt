@@ -14,10 +14,10 @@ fun main(args: Array<String>) {
     //println(h.actions.getAction())
 
     val monitor = ActionMonitor(h)
-    monitor.start()
+    monitor.startMonitoring()
 
     val fetcher = ActionFetcher(h, monitor)
-    fetcher.start()
+    fetcher.startFetching()
 
     while (true) {
         runBlocking {

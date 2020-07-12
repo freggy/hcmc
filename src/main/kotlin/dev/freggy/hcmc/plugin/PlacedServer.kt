@@ -1,6 +1,7 @@
 package dev.freggy.hcmc.plugin
 
 import dev.freggy.hcmc.hcloud.HetznerCloud
+import dev.freggy.hcmc.hcloud.model.ActionStatus
 import dev.freggy.hcmc.hcloud.model.Server
 import org.bukkit.Location
 import org.bukkit.Material
@@ -37,23 +38,30 @@ class PlacedServer(inner: Server, location: Location) {
         }
     }
 
-    fun remove() {
+    fun remove(status: ActionStatus) {
         this.location.block.type = Material.AIR
     }
 
-    fun place() {
+    fun start(status: ActionStatus) {
         this.location.block.type = Material.EMERALD_BLOCK
     }
 
-    fun stop() {
-        this.location.block.type = Material.REDSTONE_BLOCK
+    fun stop(status: ActionStatus) {
+        if (status == ActionStatus.SUCCESS) {
+            this.location.block.type = Material.REDSTONE_BLOCK
+            return
+        }
+
+        if (status == ActionStatus.RUNNING) {
+            this.location.block.type = Material.OAK_WOOD
+        }
     }
 
-    fun migrate() {
+    fun migrate(status: ActionStatus) {
         this.location.block.type = Material.REDSTONE_LAMP
     }
 
-    fun off() {
+    fun off(status: ActionStatus) {
         this.location.block.type = Material.BEDROCK
     }
 }

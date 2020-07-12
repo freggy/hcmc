@@ -19,7 +19,7 @@ class ActionMonitor(private val hcloud: HetznerCloud) {
         GlobalScope.launch {
             while (true) {
                 monitored.forEach {
-                    delay(2000)
+                    delay(4000)
                     val new = hcloud.actions.getAction(it.key)
                     // if hashcode differs we know that the state of the action has changed
                     if (it.hashCode() != new.hashCode()) {

@@ -3,6 +3,7 @@ package dev.freggy.hcmc.hcloud
 import dev.freggy.hcmc.hcloud.model.Server
 import dev.freggy.hcmc.hcloud.model.ServerPage
 import java.net.URI
+import java.net.http.HttpResponse
 
 class ServerClient(private val hcloud: HetznerCloud) {
 
@@ -17,7 +18,7 @@ class ServerClient(private val hcloud: HetznerCloud) {
                 .uri(URI.create("${hcloud.basePath}/servers?per_page=50&page=$currentPage"))
                 .build()
 
-            val resp = hcloud.queue.submit(req)
+            val resp = hcloud.client.send(req, HttpResponse.BodyHandlers.ofString())
             val page = hcloud.gson.fromJson(resp.body(), ServerPage::class.java)
 
             servers.addAll(page.servers)
@@ -29,7 +30,7 @@ class ServerClient(private val hcloud: HetznerCloud) {
 
     fun getServer(id: Int): Server {
         val req = hcloud.baseRequest.GET().uri(URI.create("${hcloud.basePath}/servers/$id")).build()
-        val resp = hcloud.queue.submit(req)
+        val resp = hcloud.client.send(req, HttpResponse.BodyHandlers.ofString())
         return hcloud.gson.fromJson(resp.body(), Server::class.java)
     }
 }

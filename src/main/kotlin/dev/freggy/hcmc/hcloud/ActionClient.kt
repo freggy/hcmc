@@ -4,6 +4,7 @@ import dev.freggy.hcmc.hcloud.model.Action
 import dev.freggy.hcmc.hcloud.model.ActionObject
 import dev.freggy.hcmc.hcloud.model.ActionPage
 import java.net.URI
+import java.net.http.HttpResponse
 
 class ActionClient(private val hcloud: HetznerCloud) {
 
@@ -22,13 +23,13 @@ class ActionClient(private val hcloud: HetznerCloud) {
             }
         }
         val req = builder.uri(URI.create(url.toString())).build()
-        val resp = hcloud.queue.submit(req)
+        val resp = hcloud.client.send(req, HttpResponse.BodyHandlers.ofString())
         return hcloud.gson.fromJson(resp.body(), ActionPage::class.java)
     }
 
     fun getAction(id: Int): Action {
         val req = hcloud.baseRequest.GET().uri(URI.create("${hcloud.basePath}/actions/$id")).build()
-        val resp = hcloud.queue.submit(req)
+        val resp = hcloud.client.send(req, HttpResponse.BodyHandlers.ofString())
         return hcloud.gson.fromJson(resp.body(), ActionObject::class.java).action
     }
 }

@@ -3,7 +3,10 @@ package dev.freggy.hcmc.plugin
 import dev.freggy.hcmc.hcloud.HetznerCloud
 import dev.freggy.hcmc.hcloud.model.Action
 import dev.freggy.hcmc.hcloud.model.ActionCommand
+import dev.freggy.hcmc.hcloud.model.ActionStatus
 import dev.freggy.hcmc.hcloud.model.Server
+import dev.freggy.hcmc.plugin.command.SetApiKeyCommand
+import dev.freggy.hcmc.plugin.command.StartCommand
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -14,18 +17,18 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 class HcmcPlugin : JavaPlugin() {
-
     // pool of current servers mapped id -> server
-    val serverPool = ConcurrentHashMap<Int, PlacedServer>()
-    val serverStatusEvents = Channel<Action>()
-    val serverPresenceEvents = Channel<Action>()
+    private val serverPool = ConcurrentHashMap<Int, PlacedServer>()
+    private val serverStatusEvents = Channel<Action>()
+    private val serverPresenceEvents = Channel<Action>()
 
-    private lateinit var hcloud: HetznerCloud
+    private var hcloud = HetznerCloud("")
+
     private val monitor = ActionMonitor(hcloud)
     private val fetcher = ActionFetcher(hcloud, monitor)
 
     override fun onEnable() {
-        hcloud = HetznerCloud("") // TODO: read token from command
+        // only for test purposes
         hcloud.servers.getAllServers().let {
             placeServers(it).forEach { placed ->
                 serverPool[placed.inner.id] = placed
@@ -35,9 +38,13 @@ class HcmcPlugin : JavaPlugin() {
         monitor.startMonitoring()
         fetcher.startFetching()
 
+        getCommand("apikey")?.setExecutor(SetApiKeyCommand(this))
+        getCommand("start")?.setExecutor(StartCommand(this))
+
         GlobalScope.launch {
             while (true) {
                 val action = monitor.updateChannel.receive()
+                Bukkit.getLogger().info(action.toString())
                 if (action.command.isServerPresence) {
                     serverPresenceEvents.send(action)
                 }
@@ -46,7 +53,6 @@ class HcmcPlugin : JavaPlugin() {
                 }
             }
         }
-
 
         GlobalScope.launch(PluginContext(this)) {
             while (true) {
@@ -59,7 +65,7 @@ class HcmcPlugin : JavaPlugin() {
                                 Bukkit.broadcastMessage("STOPPED server ${it.id} at ${placed.location}")
                                 val ctx = coroutineContext[PluginContext]!!
                                 Bukkit.getScheduler().callSyncMethod(ctx.plugin) {
-                                    placed.stop()
+                                    placed.stop(event.status)
                                 }
                                 placed.updateInner(hcloud)
                             }
@@ -79,7 +85,7 @@ class HcmcPlugin : JavaPlugin() {
                                 Bukkit.broadcastMessage("REMOVED server ${it.id} at ${server.location}")
                                 val ctx = coroutineContext[PluginContext]!!
                                 Bukkit.getScheduler().callSyncMethod(ctx.plugin) {
-                                    server.remove()
+                                    server.remove(event.status)
                                 }
                                 serverPool.remove(it.id)
                             }
@@ -95,6 +101,16 @@ class HcmcPlugin : JavaPlugin() {
     override fun onDisable() {
         this.serverStatusEvents.close()
         this.serverPresenceEvents.close()
+    }
+
+    fun setApiKey(key: String) {
+        this.hcloud = HetznerCloud(key)
+    }
+
+    fun start() {
+        // TODO: fetch current state and place it
+        monitor.startMonitoring()
+        fetcher.startFetching()
     }
 
     fun placeServers(servers: List<Server>): MutableList<PlacedServer> {
@@ -115,7 +131,7 @@ class HcmcPlugin : JavaPlugin() {
             z++
             x++
             val place = PlacedServer(it, chunk.getBlock(8, 5, 8).location)
-            place.place()
+            place.start(ActionStatus.RUNNING)
             placed.add(place)
         }
         return placed
