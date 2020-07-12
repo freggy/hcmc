@@ -1,8 +1,11 @@
 package dev.freggy.hcmc.hcloud.model
 
 import com.google.gson.annotations.SerializedName
+import java.util.*
 
 data class ActionPage(val actions: Array<Action>, val meta: Meta)
+
+data class ActionObject(val action: Action)
 
 data class Action(
     val id: Int,
@@ -11,8 +14,13 @@ data class Action(
     val progress: Int,
     val started: String,
     val finished: String,
-    val resources: Array<Resource>
-)
+    val resources: Array<Resource>,
+    val error: Error
+) {
+    override fun hashCode(): Int {
+        return Objects.hash(id, command, status, progress, status, finished, resources)
+    }
+}
 
 data class Resource(val id: Int, val type: String)
 
@@ -42,5 +50,4 @@ enum class ActionCommand(val isServerStatus: Boolean, val isServerPresence: Bool
 
     @SerializedName("change_server_type")
     CHANGE_SERVER_TYPE(true, false)
-
 }

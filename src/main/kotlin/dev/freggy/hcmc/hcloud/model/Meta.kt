@@ -9,3 +9,5 @@ data class Pagination(
     @SerializedName("last_page") val lastPage: Int,
     @SerializedName("next_page") val nextPage: Int
 )
+
+data class Error(val code: String, val message: String)

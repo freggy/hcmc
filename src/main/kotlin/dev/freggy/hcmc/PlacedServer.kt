@@ -44,8 +44,16 @@ class PlacedServer(inner: Server, location: Location) {
     fun place() {
         this.location.block.type = Material.EMERALD_BLOCK
     }
-    
+
     fun stop() {
         this.location.block.type = Material.REDSTONE_BLOCK
+    }
+
+    fun migrate() {
+        this.location.block.type = Material.REDSTONE_LAMP
+    }
+
+    fun off() {
+        this.location.block.type = Material.BEDROCK
     }
 }
