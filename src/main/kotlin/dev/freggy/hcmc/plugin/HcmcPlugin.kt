@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.generator.ChunkGenerator
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.concurrent.ConcurrentHashMap
 
@@ -101,6 +102,10 @@ class HcmcPlugin : JavaPlugin() {
     override fun onDisable() {
         this.serverStatusEvents.close()
         this.serverPresenceEvents.close()
+    }
+
+    override fun getDefaultWorldGenerator(worldName: String, id: String?): ChunkGenerator? {
+        return GirdChunkGenerator()
     }
 
     fun setApiKey(key: String) {
